@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpertsInside.BottyMcBotface", "ExpertsInside.BottyMcBotface\ExpertsInside.BottyMcBotface.csproj", "{FE83E105-6A29-4A03-9E49-638DD82FD9CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Powershell", "Powershell", "{71ED8845-390F-483B-8D05-61F211370C91}"
+	ProjectSection(SolutionItems) = preProject
+		ExpertsInside.BottyMcBotface\TeamOperations.ps1 = ExpertsInside.BottyMcBotface\TeamOperations.ps1
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE83E105-6A29-4A03-9E49-638DD82FD9CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE83E105-6A29-4A03-9E49-638DD82FD9CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE83E105-6A29-4A03-9E49-638DD82FD9CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE83E105-6A29-4A03-9E49-638DD82FD9CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {96126D51-5437-4613-81DE-E5B4D80D743A}
+	EndGlobalSection
+EndGlobal
