@@ -1,0 +1,18 @@
+{
+    "name": "Botty Local",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "appId": "",
+            "appPassword": "",
+            "endpoint": "http://localhost:3978/api/messages",
+            "id": "56f35aa0-bdda-11e9-a54c-b726ad36ef6f",
+            "name": "Botty Local"
+        }
+    ],
+    "padlock": "",
+    "version": "2.0",
+    "overrides": null,
+    "path": "C:\\Users\\barto\\Desktop\\XI.BottyMcBotface\\Botty Local.bot"
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "Image",
+      "url": "https://cdn.dribbble.com/users/37530/screenshots/2937858/drib_blink_bot.gif",
+      "size": "stretch"
+    },
+    {
+      "type": "TextBlock",
+      "spacing": "medium",
+      "size": "default",
+      "weight": "bolder",
+      "text": "Hi, I am Botty McBottyFace!",
+      "wrap": true,
+      "maxLines": 0
+    },
+    {
+      "type": "TextBlock",
+      "size": "default",
+      "isSubtle": "yes",
+      "text": "Ask me something about your company or create a new Team on Teams. \r If you need help, type ? or help.",
+      "wrap": true,
+      "maxLines": 0
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Discover more about Botty",
+      "url": "https://github.com/expertsinside/botty-mcbotface"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Who we are",
+      "url": "https://www.expertsinside.com"
+    }
+  ]
+}
