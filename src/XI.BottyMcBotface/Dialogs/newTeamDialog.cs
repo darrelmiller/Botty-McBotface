@@ -11,6 +11,8 @@ namespace XI.BottyMcBotface.Dialogs
     public class NewTeamDialog : CancelAndHelpDialog
     {
         private const string TeamNameStepMsgText = "What's the name of the new Team?";
+        private const string AskDescriptionStepMsgText = "Do you want to add description?";
+        private const string DescriptionStepMsgText = "What's the description for this team?";
         private const string OwnerEmailStepMsgText = "Who is the owner of the team? (please insert the email address)";
         private const string AskMembersStepMsgText = "Do you want to add some members now?";
         private const string MembersEmailStepMsgText = "Who are the members of the team? Write 'anyone' if you want add them later (please insert the email addresses separated by comma)";
@@ -28,6 +30,8 @@ namespace XI.BottyMcBotface.Dialogs
             AddDialog(new WaterfallDialog(nameof(WaterfallDialog), new WaterfallStep[]
             {
                 NameNewTeamStepAsync,
+                AskDescriptionStepAsync,
+                DescriptionStepAsync,
                 OwnerStepAsync,
                 AskMembersStepAsync,
                 MembersStepAsync,
@@ -36,7 +40,6 @@ namespace XI.BottyMcBotface.Dialogs
                 FinalStepAsync,
             }));
 
-            // The initial child Dialog to run.
             InitialDialogId = nameof(WaterfallDialog);
         }
 
@@ -53,11 +56,38 @@ namespace XI.BottyMcBotface.Dialogs
             return await stepContext.NextAsync(newTeamDetails.TeamName, cancellationToken);
         }
 
-        private async Task<DialogTurnResult> OwnerStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> AskDescriptionStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             var newTeamDetails = (NewTeamDetails)stepContext.Options;
 
             newTeamDetails.TeamName = (string)stepContext.Result;
+
+            var promptMessage = MessageFactory.Text(AskDescriptionStepMsgText, AskDescriptionStepMsgText, InputHints.ExpectingInput);
+            return await stepContext.PromptAsync(nameof(ConfirmPrompt), new PromptOptions { Prompt = promptMessage }, cancellationToken);
+        }
+
+        private async Task<DialogTurnResult> DescriptionStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            var newTeamDetails = (NewTeamDetails)stepContext.Options;
+
+            newTeamDetails.DescriptionAnswer = (bool)stepContext.Result;
+
+            if (newTeamDetails.DescriptionAnswer)
+            {
+                var promptMessage = MessageFactory.Text(DescriptionStepMsgText, DescriptionStepMsgText, InputHints.ExpectingInput);
+                return await stepContext.PromptAsync(nameof(TextPrompt), new PromptOptions { Prompt = promptMessage }, cancellationToken);
+            }
+
+            newTeamDetails.Description = string.Empty;
+
+            return await stepContext.NextAsync(newTeamDetails.Description, cancellationToken);
+        }
+
+        private async Task<DialogTurnResult> OwnerStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            var newTeamDetails = (NewTeamDetails)stepContext.Options;
+
+            newTeamDetails.Description = (string)stepContext.Result;
 
             if (newTeamDetails.Owner == null)
             {
@@ -76,7 +106,6 @@ namespace XI.BottyMcBotface.Dialogs
 
             var promptMessage = MessageFactory.Text(AskMembersStepMsgText, AskMembersStepMsgText, InputHints.ExpectingInput);
             return await stepContext.PromptAsync(nameof(ConfirmPrompt), new PromptOptions { Prompt = promptMessage }, cancellationToken);
-
         }
 
         private async Task<DialogTurnResult> MembersStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
@@ -124,7 +153,14 @@ namespace XI.BottyMcBotface.Dialogs
             {
                 var newTeamDetails = (NewTeamDetails)stepContext.Options;
 
-                await _dataService.CreateTeam(newTeamDetails.TeamName, newTeamDetails.Owner, newTeamDetails.Members, newTeamDetails.Private);
+                var typingMsg = stepContext.Context.Activity.CreateReply();
+                typingMsg.Type = ActivityTypes.Typing;
+                typingMsg.Text = null;
+                await stepContext.Context.SendActivityAsync(typingMsg);
+
+                await _dataService.CreateTeam(newTeamDetails.TeamName, newTeamDetails.Description, newTeamDetails.Owner, newTeamDetails.Members, newTeamDetails.Private);
+
+                await stepContext.Context.SendActivityAsync(typingMsg);
 
                 return await stepContext.EndDialogAsync(newTeamDetails, cancellationToken);
             }

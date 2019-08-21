@@ -8,7 +8,7 @@ namespace XI.BottyMcBotface.Services
     public interface IDataService
     {
 
-        Task<bool> CreateTeam(string displayName, string owner, string members, bool isPrivate);
+        Task<bool> CreateTeam(string displayName, string description, string owner, string members, bool isPrivate);
 
     }
 }

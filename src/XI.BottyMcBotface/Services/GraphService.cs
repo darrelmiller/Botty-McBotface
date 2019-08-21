@@ -45,9 +45,8 @@ namespace XI.BottyMcBotface.Services
         {
             try
             {
-                //var tenantId = _httpContextAccessor.HttpContext.User.Claims.Where(c => c.Type == tenantIdClaimType).FirstOrDefault().Value;
                 var tenantId = await GetTenantId(domain);
-                
+
                 var daemonClient = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(new ConfidentialClientApplicationOptions() { ClientId = bottySettings.AppId, ClientSecret = bottySettings.AppSecrets, TenantId = tenantId, RedirectUri = bottySettings.Url }).Build();
 
                 var authResult = await daemonClient.AcquireTokenForClient(new string[] { msGraphScope }).ExecuteAsync();
@@ -83,7 +82,7 @@ namespace XI.BottyMcBotface.Services
             }
         }
 
-        public async Task<bool> CreateTeam(string displayName, string owner, string members, bool isPrivate)
+        public async Task<bool> CreateTeam(string displayName, string description, string owner, string members, bool isPrivate)
         {
             var address = new MailAddress(owner);
             string host = address.Host;
@@ -95,7 +94,9 @@ namespace XI.BottyMcBotface.Services
             var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/beta/teams");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
-            var requestString = $"{{ 'displayName': '{displayName}', 'description': '-' , 'owners@odata.bind': [ 'https://graph.microsoft.com/beta/users/{owner}' ] }}";
+            var ownerId = await RetrieveUserIdFromEmail(owner);
+
+            var requestString = $"{{ \"template@odata.bind\": \"https://graph.microsoft.com/beta/teamsTemplates('standard')\", \"displayName\": \"{displayName}\", \"description\": \"{description}\" , \"owners@odata.bind\": [ \"https://graph.microsoft.com/beta/users/{ownerId}\" ] }}";
 
             HttpContent c = new StringContent(requestString, Encoding.UTF8, "application/json");
             request.Content = c;
@@ -104,6 +105,28 @@ namespace XI.BottyMcBotface.Services
 
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<string> RetrieveUserIdFromEmail(string email)
+        {
+            var address = new MailAddress(email);
+            string host = address.Host;
+
+            var token = await GetGraphToken(host);
+
+            var client = _httpClientFactory.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://graph.microsoft.com/beta/users/{email}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var response = await client.SendAsync(request);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var userId = JObject.Parse(responseBody)["id"];
+
+            return userId.Value<string>();
+        }
+
 
     }
 }
