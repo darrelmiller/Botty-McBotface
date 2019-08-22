@@ -24,7 +24,7 @@
   <h2 align="center">Botty McBotface</h2>
 
   <p align="center">
-    An example on how to interacte with Graph API from ASP.NET Core
+    An example on how to interacte with Graph API from a bot
     <br />
     <a href="https://github.com/expertsinside/Botty-McBotface"><strong>Explore the docs »</strong></a>
     <br />
