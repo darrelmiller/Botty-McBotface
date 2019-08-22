@@ -158,7 +158,8 @@ namespace XI.BottyMcBotface.Dialogs
                 typingMsg.Text = null;
                 await stepContext.Context.SendActivityAsync(typingMsg);
 
-                await _dataService.CreateTeam(newTeamDetails.TeamName, newTeamDetails.Description, newTeamDetails.Owner, newTeamDetails.Members, newTeamDetails.Private);
+                var groupId = await _dataService.CreateGroup(newTeamDetails.TeamName, newTeamDetails.Description, newTeamDetails.Owner, newTeamDetails.Members, newTeamDetails.Private);
+                await _dataService.CreateTeamFromGroup(groupId, newTeamDetails.Owner);
 
                 await stepContext.Context.SendActivityAsync(typingMsg);
 

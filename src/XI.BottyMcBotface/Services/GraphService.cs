@@ -82,6 +82,83 @@ namespace XI.BottyMcBotface.Services
             }
         }
 
+        public async Task<string> CreateGroup(string displayName, string description, string owner, string members, bool isPrivate)
+        {
+            var address = new MailAddress(owner);
+            string host = address.Host;
+
+            var token = await GetGraphToken(host);
+
+            var client = _httpClientFactory.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/beta/groups");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var visibility = isPrivate ? "private" : "public";
+
+            if (string.IsNullOrEmpty(description)) description = "-";
+
+            var membersListId = new List<string>();
+            var membersList = members.Split(',').ToList();
+            foreach (var item in membersList)
+            {
+                if (!string.IsNullOrEmpty(item)) membersListId.Add(item);
+            }
+
+            membersListId.Add(owner);
+
+            var membersString = string.Empty;
+            foreach (var item in membersListId)
+            {
+                membersString += $"\"https://graph.microsoft.com/beta/users/{item}\" ,";
+            }
+
+            var mailNickname = displayName.Replace(" ", "");
+
+            var requestString = $"{{ " +
+                                $" \"displayName\": \"{displayName}\", \"description\": \"{description}\" ," +
+                                $" \"visibility\": \"{visibility}\" ," +
+                                $" \"groupTypes\": [\"Unified\"] , \"mailEnabled\": true , \"resourceBehaviorOptions\": [\"WelcomeEmailDisabled\"] , \"securityEnabled\": false ," +
+                                $" \"owners@odata.bind\": [ \"https://graph.microsoft.com/beta/users/{owner}\" ], " +
+                                $" \"members@odata.bind\": [ {membersString} ], " +
+                                $" \"visibility\": \"{visibility}\" ," +
+                                $" \"mailNickname\": \"{mailNickname}\" }}";
+
+            HttpContent c = new StringContent(requestString, Encoding.UTF8, "application/json");
+            request.Content = c;
+
+            var response = await client.SendAsync(request);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var groupId = JObject.Parse(responseBody)["id"];
+
+            return groupId.Value<string>();
+        }
+
+        public async Task<bool> CreateTeamFromGroup(string groupId, string owner)
+        {
+            var address = new MailAddress(owner);
+            string host = address.Host;
+
+            var token = await GetGraphToken(host);
+
+            var client = _httpClientFactory.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{graphBasePathBeta}/groups/{groupId}/team");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var payload = "{\"memberSettings\": { \"allowCreateUpdateChannels\": true },\"messagingSettings\": {\"allowUserEditMessages\": true,\"allowUserDeleteMessages\": true},\"funSettings\": {\"allowGiphy\": true,\"giphyContentRating\": \"strict\"}}";
+
+            HttpContent c = new StringContent(payload, Encoding.UTF8, "application/json");
+            request.Content = c;
+
+            var response = await client.SendAsync(request);
+
+            return true;
+        }
+
+        //Not used anymore
         public async Task<bool> CreateTeam(string displayName, string description, string owner, string members, bool isPrivate)
         {
             var address = new MailAddress(owner);
@@ -94,9 +171,31 @@ namespace XI.BottyMcBotface.Services
             var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/beta/teams");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
+            var visibility = isPrivate ? "private" : "public";
+
             var ownerId = await RetrieveUserIdFromEmail(owner);
 
-            var requestString = $"{{ \"template@odata.bind\": \"https://graph.microsoft.com/beta/teamsTemplates('standard')\", \"displayName\": \"{displayName}\", \"description\": \"{description}\" , \"owners@odata.bind\": [ \"https://graph.microsoft.com/beta/users/{ownerId}\" ] }}";
+            var membersListId = new List<string>();
+            var membersList = members.Split(',').ToList();
+            foreach (var item in membersList)
+            {
+                string id = await RetrieveUserIdFromEmail(item);
+
+                if (!string.IsNullOrEmpty(id)) membersListId.Add(id);
+            }
+
+            membersListId.Add(ownerId);
+
+            var membersString = string.Empty;
+            foreach (var item in membersListId)
+            {
+                membersString += $"\"https://graph.microsoft.com/beta/users/{item}\" ,";
+            }
+
+            var requestString = $"{{ \"template@odata.bind\": \"https://graph.microsoft.com/beta/teamsTemplates('standard')\"," +
+                                $" \"displayName\": \"{displayName}\", \"description\": \"{description}\" ," +
+                                $" \"visibility\": \"{visibility}\" ," +
+                                $" \"owners@odata.bind\": [ \"https://graph.microsoft.com/beta/users/{ownerId}\" ] }}";
 
             HttpContent c = new StringContent(requestString, Encoding.UTF8, "application/json");
             request.Content = c;
@@ -106,27 +205,33 @@ namespace XI.BottyMcBotface.Services
             return response.IsSuccessStatusCode;
         }
 
+        //Not used anymore
         public async Task<string> RetrieveUserIdFromEmail(string email)
         {
-            var address = new MailAddress(email);
-            string host = address.Host;
+            try
+            {
+                var address = new MailAddress(email);
+                string host = address.Host;
 
-            var token = await GetGraphToken(host);
+                var token = await GetGraphToken(host);
 
-            var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient();
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"https://graph.microsoft.com/beta/users/{email}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+                var request = new HttpRequestMessage(HttpMethod.Get, $"https://graph.microsoft.com/beta/users/{email}");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
-            var response = await client.SendAsync(request);
+                var response = await client.SendAsync(request);
 
-            var responseBody = await response.Content.ReadAsStringAsync();
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-            var userId = JObject.Parse(responseBody)["id"];
+                var userId = JObject.Parse(responseBody)["id"];
 
-            return userId.Value<string>();
+                return userId.Value<string>();
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
-
-
     }
 }
