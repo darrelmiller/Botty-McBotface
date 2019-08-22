@@ -75,7 +75,7 @@ Download or fork the project from this repository and open it in Visual Studio 2
 Restore all packages from Nuget and press F5 to start Debug.
 Launch the Bot Framework emulator and insert the correct endpoint for your Bot.
 
-![bot emulator](botemulator.png)
+![bot emulator](botemulator.PNG)
 
 ### Prerequisites
 
